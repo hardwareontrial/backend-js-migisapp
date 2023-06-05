@@ -8,7 +8,7 @@ route.get('/sync-data', attendanceUserController.allData);
 route.post('/sync', upload.none(), attendanceUserController.manualAttSync);
 route.post('/generate-data', upload.none(), attendanceUserController.generateFile);
 
-route.get('/testing-a', attendanceUserController.testing);
+// route.get('/testing-a', attendanceUserController.testing);
 
 // route.post('/auto-sync', upload.none(), attendanceUserController.autoSync);
 // route.post('/auto-generate-data', upload.none(), attendanceUserController.generateAutoFile);
