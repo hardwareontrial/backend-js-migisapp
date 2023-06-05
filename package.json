@@ -1,0 +1,36 @@
+{
+  "name": "beta-backendjs",
+  "version": "1.0.0",
+  "description": "migisapp-backend using sequelize,expressjs,mysql",
+  "main": "main.js",
+  "scripts": {
+    "dev": "nodemon main.js",
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "expressjs",
+    "sequelize"
+  ],
+  "author": "ITMIG-02",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "http": "^0.0.1-security",
+    "mariadb": "^3.1.2",
+    "moment": "^2.29.4",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.3.2",
+    "node-cron": "^3.0.2",
+    "nodemon": "^2.0.22",
+    "sequelize": "^6.31.1"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.0",
+    "webpack": "^5.84.1",
+    "webpack-cli": "^5.1.1"
+  }
+}
