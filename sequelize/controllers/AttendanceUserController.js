@@ -10,32 +10,41 @@ const AttendanceExportLog = model.Database1.models.AttendanceExportLog;
 const AttendanceUser = model.Database1.models.AttendanceUser;
 const AttendanceLogSource = model.Database2.models.AttendanceLogSource;
 
-exports.attSync = async () => {
+exports.attSync = async (req, res) => {
 	
-	let startDate, endDate, sourceDataAtt, countLog, storePath, file, filename;
+	let startDate, endDate, sourceDataAtt, countLog, storePath, file, filename, countAttData, startDateLog, endDateLog, dataExported;
 
 	countLog = await AttendanceExportLog.count();
+	countAttData = await AttendanceUser.count();
 
-	if (countLog == 0) {
-		startDate =  moment().format('YYYY-MM-DD 00:00:00');
-		endDate =  moment().format('YYYY-MM-DD HH:mm:ss');
-		// startDate = '2023-03-27 00:00:00';
-		// endDate = '2023-03-27 02:00:00';
+	if(countAttData == 0){
+
+		startDate = moment().format('YYYY-MM-DD 00:00:00');
+		endDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
 	} else {
-		await AttendanceExportLog.findOne({ order: [['id', 'DESC']] })
+
+		await AttendanceUser
+		.findOne({ order: [['id', 'DESC']] })
 		.then(data => { 
-			startDate = data.enddate 
+			startDate = data.scan_date 
 		})
 		.catch(err => { 
 			console.log(err);
 		})
 		
-		endDate =  moment().format('YYYY-MM-DD HH:mm:ss');
-		// endDate = '2023-03-27 05:30:00';
+		endDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
 	}
 
 	await AttendanceLogSource.findAll({
-		where: { scan_date: {[Op.between]: [startDate, endDate]} },
+		// where: { scan_date: {[Op.between]: [startDate, endDate]} },
+		where: {
+			scan_date: {
+				[Op.gt]: startDate,
+				[Op.lte]: endDate,
+			},
+		},
 		include: [
 			{
 				model: model.Database3.models.AppUser,
@@ -53,7 +62,7 @@ exports.attSync = async () => {
 		console.log(err);
 	});
 
-	if(sourceDataAtt.length != 0){
+	if(await sourceDataAtt.length != 0){
 		
 		/** storing  raw data to DB */
 		sourceDataAtt = sourceDataAtt.map(el => ({pin: el.pin, name: el.dataUser.name, scan_date: el.scan_date}));
@@ -64,11 +73,9 @@ exports.attSync = async () => {
 					{ transaction: t }
 				);
 			})
-			// console.log('stored successfully');
 		} catch (err) {
 			console.log(err);
 		}
-
 		
 		/** check storage folder */
 		const __dirname = path.resolve();
@@ -82,32 +89,68 @@ exports.attSync = async () => {
 			})
 		}
 
+		if(countLog == 0){
+
+			if(countAttData == 0){
+				startDateLog = startDate;
+				endDateLog = endDate;
+			}else{
+				await AttendanceUser.findAll({ order: [['id', 'ASC']] })
+				.then(data => {
+					startDateLog = data[0].scan_date;
+					endDateLog = data[data.length -1].scan_date;
+				})
+				.catch(err => { console.log(err); })
+			}
+		} else {
+
+			await AttendanceExportLog
+			.findOne({ order: [['id', 'DESC']] })
+			.then(data => { 
+				startDateLog = data.enddate
+			})
+			.catch(err => { console.log(err); });
+
+			endDateLog = endDate;
+
+		}
+
+		await AttendanceUser.findAll({
+			where: {
+				scan_date: {
+					[Op.gt]: startDateLog,
+					[Op.lte]: endDateLog,
+				},
+			},
+			order: [['id', 'DESC']]
+		})
+		.then(data => { dataExported = data })
+		.catch(err => { console.error(err) });
+
 		/** creating file, store to public folder */
-		filename = startDate.replace(/-|\s|:/g,"")+'-'+endDate.replace(/-|\s|:/g,"")+'.txt';
+		filename = startDateLog.replace(/-|\s|:/g,"")+'-'+endDateLog.replace(/-|\s|:/g,"")+'.txt';
 		file = fs.createWriteStream(`${path.resolve(__dirname, storePath)}/${filename}`);
 		file.on('error', function(err) { console.log(err) });
-		for (let i=0; i < sourceDataAtt.length; i++){
-			file.write(sourceDataAtt[i].pin+','+sourceDataAtt[i].name+','+moment(sourceDataAtt[i].scan_date).format('DD/MM/YYYY HH:mm')+',\n')
+		for (let i=0; i < dataExported.length; i++){
+			file.write(dataExported[i].pin+','+dataExported[i].name+','+moment(dataExported[i].scan_date).format('DD/MM/YYYY HH:mm')+',\n')
 		}
 		file.end();
 
 		await AttendanceExportLog.create({
-			startdate: startDate,
-			enddate: endDate,
+			startdate: startDateLog,
+			enddate: endDateLog,
 			note: `Export created with filename ${filename}`,
 		}).then(() => {
 			console.log('Data exported successfully');
-		}).catch(err => {
-			console.log(err);
-		});
+		}).catch(err => { console.log(err); });
 
 	} else {
 		await AttendanceExportLog.create({
 			startdate: startDate,
 			enddate: endDate,
 			note: `No Data exported`,
-		}).then(() => {
-			console.log('Data exported successfully');
+		}).then(data => {
+			console.log(data);
 		}).catch(err => {
 			console.log(err);
 		});
@@ -181,6 +224,16 @@ exports.manualAttSync = async (req, res) => {
 
 exports.generateFile = async (req, res) => {
 	let inputStartDate, inputEndDate;
+
+	if(!req.query.startdate){
+		res.status(422).send({message: 'Tanggal mulai harus diisi!'});
+		return;
+	}
+
+	else if(!req.query.enddate){
+		res.status(422).send({message: 'Tanggal selesai harus diisi!'});
+		return;
+	}
 	
 	inputStartDate = await req.query.startdate;
 	inputEndDate = await req.query.enddate;
