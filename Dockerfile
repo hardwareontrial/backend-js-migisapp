@@ -9,6 +9,8 @@ USER node
 RUN npm install
 USER root
 
+RUN echo "Asia/Jakarta" > /etc/timezone && ln -s /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
 EXPOSE 3000/tcp
 
 COPY ./entrypoint.sh /usr/bin/backendjs-entrypoint.sh
