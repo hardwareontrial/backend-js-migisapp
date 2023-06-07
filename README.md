@@ -13,8 +13,8 @@ Provide MIG-IS logical as backend served by Express JS and Sequelize for queryin
 
 ### Features
 
-- Use [Sequelize](https://linktodocumentation) Library,
-- Use [Express JS](https://linktodocumentation),
+- Use [Sequelize](https://sequelize.org/docs/v6/getting-started/) Library,
+- Use [Express JS](https://expressjs.com/),
 - Pure Javascript,
 - Using 3 databases, for attendance logs, employee data, and storage data.
 
