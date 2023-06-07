@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  example_container:
+    image: migisapp/backend-js:1.02
+    container_name: example_container
+    restart: unless-stopped
+    tty: true
+    working_dir: /home/node/backend-js/
+    ports:
+      - "192.168.100.227:8003:3000"
+    environment:
+      - NODE_ENV=development
+      - APP_PORT=3000
+      - DB_DIALECT=mysql
+      - DB_HOST=127.0.0.1
+      - DB_PORT=3306
+      - DB_DATABASE=database
+      - DB_USERNAME=username
+      - DB_PASSWORD=password
+      - DB_MAX=5
+      - DB_MIN=0
+      - DB_ACQUIRE=30000
+      - DB_IDLE=10000
+      - DB_ABSENSI_DIALECT=mysql
+      - DB_ABSENSI_HOST=127.0.0.1
+      - DB_ABSENSI_PORT=3306
+      - DB_ABSENSI_DATABASE=database
+      - DB_ABSENSI_USERNAME=username
+      - DB_ABSENSI_PASSWORD=password
+      - DB_ABSENSI_MAX=5
+      - DB_ABSENSI_MIN=0
+      - DB_ABSENSI_ACQUIRE=30000
+      - DB_ABSENSI_IDLE=10000
+      - DB_WEB_DIALECT=mysql
+      - DB_WEB_HOST=127.0.0.1
+      - DB_WEB_PORT=3306
+      - DB_WEB_DATABASE=database
+      - DB_WEB_USERNAME=username
+      - DB_WEB_PASSWORD=password
+      - DB_WEB_MAX=5
+      - DB_WEB_MIN=0
+      - DB_WEB_ACQUIRE=30000
+      - DB_WEB_IDLE=10000
+    volumes:
+      - ./data/backend-js/public/:/home/node/backend-js/express/public
+    networks:
+      net-database:
+        ipv4_address: 172.0.0.1
+
+networks:
+  net-database:
+    external: true
