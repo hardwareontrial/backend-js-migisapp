@@ -1,3 +1,4 @@
 /node_modules
 /dist
+/supporting_files/structure_data_db.sql
 .env
